@@ -21,6 +21,7 @@
         }
 
         function pullCached($file) {
+
           if (!file_exists('phpss_cache')) {
             mkdir('phpss_cache');
           }
@@ -46,7 +47,7 @@
             }
 
             $json = json_encode($ast->renderArray());
-            file_put_contents('PHPSS_cache/' . $file, $json);
+            file_put_contents('phpss_cache/' . $file, $json);
 
             return $ast->render();
           } else if (file_exists('phpss_cache/' . $file)) {
