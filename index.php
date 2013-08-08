@@ -70,7 +70,7 @@
             while ($i--) {
               $token .= $grabbag[rand(0,61)];
             }
-          } while (file_exists('css_cache/'+$token)); // Hope this doesn't go forever!
+          } while (file_exists('css_cache/' . $token)); // Hope this doesn't go forever!
           return $token;
         }
 
