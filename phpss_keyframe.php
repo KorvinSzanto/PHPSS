@@ -39,8 +39,9 @@ final class PHPSSKeyframe implements PHPSSRender {
 
 
   public function render() {
-    $rendered = "Keyframe: {$this->identifier} called with " .
-    "{$this->calledProperty}<br>";
+    $identifier = htmlspecialchars($this->identifier);
+    $called = htmlspecialchars($this->calledProperty);
+    $rendered = "Keyframe: {$identifier} called with {$called}<br>";
     foreach ($this->rules as $rule) {
       $rendered .= $rule->render();
     }

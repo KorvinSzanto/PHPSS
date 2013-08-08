@@ -34,12 +34,12 @@ final class PHPSSRule implements PHPSSRender {
     $rule = "";
     $selector_count = count($this->selectors);
     for($i = 0; $i < $selector_count; $i++) {
-      $selector = $this->selectors[$i];
 
+      $selector = htmlspecialchars($this->selectors[$i]);
       $rule .= "<strong>{$selector}" . ($i + 1 != $selector_count ? "," : "") .
                "</strong><br />";
     }
-    $rule = htmlspecialchars(trim($rule,','));
+    $rule = rtrim($rule,',');
     $rules = "";
     $styles = "";
     foreach ($this->properties as $property) {
@@ -47,7 +47,7 @@ final class PHPSSRule implements PHPSSRender {
       $rules .= "<li>{$rendered_property}</li>";
       $styles .= $property->renderCSS(true);
     }
-    $styles = str_replace(array('fixed','"'), array('absolute',"'"), $styles);
+    $styles = str_replace(array('"','fixed'), array("'",'absolute'), $styles);
     return "<div style='overflow:hidden;position:relative'>" .
              "<span style=\"{$styles}\">{$rule}</span>" .
              "<ul style='clear:both'>{$rules}</ul>" .

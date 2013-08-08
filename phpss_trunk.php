@@ -135,10 +135,12 @@ final class PHPSSTrunk implements PHPSSRender {
                      " Media Templates." .
                    "</div>";
     } else {
-      $rendered .= "Media: {$this->mediaType}<br>";
+      $media_type = htmlspecialchars($this->mediaType);
+      $rendered .= "Media: {$media_type}<br>";
     }
     if ($this->charset) {
-      $rendered .= "Character Encoding: {$this->charset}<br />";
+      $charset = htmlspecialchars($this->charset);
+      $rendered .= "Character Encoding: {$charset}<br />";
     }
     foreach ($this->keyframes as $keyframe) {
       $rendered .= $keyframe->render();
