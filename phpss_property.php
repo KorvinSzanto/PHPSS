@@ -17,8 +17,9 @@ class PHPSSProperty implements PHPSSRender {
   }
 
   public function render() {
+    $property = htmlspecialchars($this->property);
     return ($this->isImportant ? "Important " : "") .
-            "{$this->property} => " . $this->getValue();
+            "{$property} => " . $this->getValue();
   }
 
   public function renderCSS($min = false) {
@@ -38,9 +39,9 @@ class PHPSSProperty implements PHPSSRender {
 
   public function setProperty($property) {
     $this->property = preg_replace(
-      "~[^a-z0-9\-]~i",
+      "~[^a-z0-9\-<>: \(\)]~i",
       '',
-      str_replace("'","\'", $property));
+      $property);
     return $this;
   }
 
