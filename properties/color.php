@@ -13,9 +13,9 @@ class ColorProperty extends PHPSSProperty {
 
   public function render() {
     if ($this->color) {
-      $rendered = $this->property . " => <span style='text-shadow:0px 0px 2px " .
-              $this->color->opposite() . ";color:". $this->color .
-              "'>{$this->rawValue}</span>";
+      $rendered = $this->property . " => <span style='text-shadow:0px 0px 2px" .
+              " " . $this->color->opposite() . ";color:". $this->color . "'>" .
+              $this->getValue() . "</span>";
       if ($this->isImportant) {
         $rendered = "Important ". $rendered;
       }
