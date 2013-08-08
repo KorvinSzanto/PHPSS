@@ -5,18 +5,18 @@
   <body>
     <div class='uk-container-center uk-container'>
         <?php
-        if (isset($_GET['f']) && $_GET['f']) {
+        if (isset($_POST['f'])) {
+          $file = genToken();
+          if ($response = pullCached($file)) {
+            header('location: ?f=' . $file);
+            exit;
+          }
+        } else if (isset($_GET['f']) && $_GET['f']) {
           $file = preg_replace('~[^a-z0-9]~i','',$_GET['f']);
           if ($response = pullCached($file)) {
             die("<div class='uk-width-large-1-1 uk-visible-large uk-panel-box'>" .
                 $response . "</div>");
 
-          }
-        } else if (isset($_POST['f'])) {
-          $file = genToken();
-          if ($response = pullCached($file)) {
-            header('location: ?f=' . $file);
-            exit;
           }
         }
 
@@ -80,7 +80,7 @@
           <div class="uk-form-row">
             <label class="uk-form-label" for="file">CSS File</label>
             <input type="file" name="file">
-            <input type='submit' name='f' value='submit' class='uk-button uk-button-primary'>Submit</button>
+            <input type='submit' name='f' value='Submit' class='uk-button uk-button-primary'>
           </div>
         </form>
       </div>
