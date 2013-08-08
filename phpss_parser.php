@@ -19,6 +19,43 @@ final class PHPSSParser {
     $this->ast = array();
   }
 
+  private function getSheets($css) {
+    $sheets = array();
+    $raw_sheets = array();
+    $total_subsheets = preg_match_all('~^@media(?P<media>.+?) \{'.
+                                      '(?P<rules>(.|\n)+?)\}\n\}~m',
+                                      $css,
+                                      $raw_sheets);
+
+    $sheets['subsheets'] = array();
+    foreach($raw_sheets['media'] as $key => $media) {
+      $sheets['subsheets'][] = array(
+        'media' => $media,
+        'rules' => $raw_sheets['rules'][$key] . "}");
+    }
+
+    $raw_keyframes = array();
+    $total_keyframes = preg_match_all('~^@(?P<called>(?:-.+?-)?keyframes) ' .
+                                      '(?P<identifier>.+?) {' .
+                                      '(?P<rules>(\n|.)+?)}\n}~m',
+                                      $css,
+                                      $raw_keyframes);
+    $sheets['keyframes'] = array();
+    foreach($raw_keyframes['called'] as $key => $called) {
+      $sheets['keyframes'][] = array(
+        'called' => $media,
+        'identifier' => $raw_keyframes['identifier'][$key],
+        'rules' => $raw_keyframes['rules'][$key] . "}");
+    }
+
+    $sheets['main'] = preg_replace('~^@((-.+?-)keyframes|media)?.+?\{' .
+                                   '((.|\n)+?)\}\n\}~m',
+                                   "",
+                                   $css);
+
+    return $sheets;
+  }
+
   private function renderCleanCSS() {
 
     $clean_css = preg_replace(
@@ -29,8 +66,9 @@ final class PHPSSParser {
         '~^\s*~m',
         '~\s*$~m',
         '~\n+~m',
+        '~\};~',
         '~\s*\{~'),
-      array('',"$1\n",";\n}",'','',"\n",' {'),
+      array('',"$1\n",";\n}",'','',"\n",'}',' {'),
       $this->rawCSS);
     $this->rawCSS = '';
 
@@ -63,10 +101,46 @@ final class PHPSSParser {
     }
 
     $clean_css = $this->renderCleanCSS();
-    if (!$this->isValid($clean_css)) {
-      throw new InvalidCSSException();
+    $sheets = $this->getSheets($clean_css);
+
+    if (!$this->isValid($sheets['main'])) {
+      echo $sheets['main'];
+      throw new InvalidCSSException;
     }
-    $ast = new PHPSSTrunk;
+
+    $ast = $this->createTree($sheets['main']);
+
+    foreach ($sheets['subsheets'] as $sheet) {
+      if (!$this->isValid($sheet['rules'])) {
+        throw new InvalidCSSException;
+      }
+      $subast = $this->createTree($sheet['rules']);
+      $subast->setMedia($sheet['media']);
+      $ast->addSubtrunk($subast);
+    }
+    foreach ($sheets['keyframes'] as $raw_keyframe) {
+      $keyframe = new PHPSSKeyframe;
+
+      $from_match = array();
+      preg_match('~^from {((?:.|\n)+?)}~m',
+                 $raw_keyframe['rules'],
+                 $from_match);
+      $from_rule = $this->createRule('from', $from_match[1]);
+
+      $to_match = array();
+      preg_match('~^to {((?:.|\n)+?)}~m',
+                 $raw_keyframe['rules'],
+                 $to_match);
+      $to_rule = $this->createRule('to', $to_match[1]);
+
+
+      $keyframe->setIdentifier($raw_keyframe['identifier'])
+               ->setCalledProperty($raw_keyframe['called'])
+               ->setToRule($to_rule)
+               ->setFromRule($from_rule);
+
+      $ast->addKeyframe($keyframe);
+    }
 
     $ast->setCharset($charset);
 
@@ -78,36 +152,45 @@ final class PHPSSParser {
       $ast->addImport($import);
     }
 
+    return $ast;
+  }
+
+  private function createTree($css) {
+    $ast = new PHPSSTrunk;
     $raw_rules = array();
     $total_rules = preg_match_all(
       "~^(?P<selector>.+) \{(?P<properties>(\n|.)+?)\n\}~m",
-      $clean_css,
+      $css,
       $raw_rules);
 
     foreach($raw_rules['selector'] as $key => $selector) {
-      $rule = new PHPSSRule;
-      $selectors = explode(',', $selector);
-      foreach ($selectors as $selector_part) {
-        $rule->addSelector(trim($selector_part));
-      }
-
-      $raw_properties = array();
-      $total_properties = preg_match_all(
-        "~^[ \t]*(?P<property>.+?)[ \t]*:[ \t]*(?P<value>.+?)[ \t]*;~m",
-        $raw_rules['properties'][$key],
-        $raw_properties);
-
-      foreach($raw_properties['property'] as $key => $property) {
-        $property_object = $this->getPropertyObject(strtolower($property));
-        $property_object->setProperty($property)
-                        ->setRawValue($raw_properties['value'][$key]);
-        $rule->addProperty($property_object);
-      }
-
+      $rule = $this->createRule($selector,$raw_rules['properties'][$key]);
       $ast->addRule($rule);
     }
 
     return $ast;
+  }
+
+  private function createRule($selector, $raw_rule) {
+    $rule = new PHPSSRule;
+    $selectors = explode(',', $selector);
+    foreach ($selectors as $selector_part) {
+      $rule->addSelector(trim($selector_part));
+    }
+
+    $raw_properties = array();
+    $total_properties = preg_match_all(
+      "~^[ \t]*(?P<property>.+?)[ \t]*:[ \t]*(?P<value>.+?)[ \t]*;~m",
+      $raw_rule,
+      $raw_properties);
+
+    foreach($raw_properties['property'] as $key => $property) {
+      $property_object = $this->getPropertyObject(strtolower($property));
+      $property_object->setProperty($property)
+                      ->setRawValue($raw_properties['value'][$key]);
+      $rule->addProperty($property_object);
+    }
+    return $rule;
   }
 
   private function isValid($css) {

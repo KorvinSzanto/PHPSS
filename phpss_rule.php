@@ -8,6 +8,20 @@ final class PHPSSRule implements PHPSSRender {
   protected $selectors = array();
   protected $properties = array();
 
+  public function loadData(stdClass $obj) {
+    foreach ($obj->selectors as $raw_selector) {
+      $this->addSelector($raw_selector);
+    }
+
+    foreach ($obj->properties as $raw_property) {
+      $property = new PHPSSProperty;
+      $property->loadData($raw_property);
+      $this->addProperty($property);
+    }
+
+    return $this;
+  }
+
   public function render() {
     $rule = "";
     $selector_count = count($this->selectors);
@@ -25,14 +39,20 @@ final class PHPSSRule implements PHPSSRender {
       $rules .= "<li>{$rendered_property}</li>";
       $styles .= $property->renderCSS(true);
     }
-    return "<div style='position:relative'><span style='{$styles}'>{$rule}</span><ul>{$rules}</ul><div>";
+    $styles = str_replace('fixed', 'absolute', $styles);
+    return "<div style='overflow:hidden;position:relative'>" .
+             "<span style='{$styles}'>{$rule}</span>" .
+             "<ul style='clear:both'>{$rules}</ul>" .
+           "</div>";
   }
 
   public function addSelector($selector) {
     $this->selectors[] = $selector;
+    return $this;
   }
   public function addProperty(PHPSSProperty $property) {
     $this->properties[] = $property;
+    return $this;
   }
 
   public function renderCSS($min=false) {
@@ -56,6 +76,18 @@ final class PHPSSRule implements PHPSSRender {
 
   public function renderEdit() {
     return;
+  }
+
+  public function renderArray() {
+    $me = new stdClass;
+    $me->selectors = $this->selectors;
+    $me->properties = array();
+
+    foreach ($this->properties as $property) {
+      $me->properties[] = $property->renderArray();
+    }
+
+    return $me;
   }
 
 }

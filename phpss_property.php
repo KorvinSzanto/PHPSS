@@ -9,6 +9,13 @@ class PHPSSProperty implements PHPSSRender {
   protected $rawValue;
   protected $isImportant = false;
 
+  public function loadData(stdClass $obj) {
+    $this->setProperty($obj->property);
+    $this->setRawValue($obj->rawValue);
+
+    return $this;
+  }
+
   public function render() {
     return ($this->isImportant ? "Important " : "") .
             "{$this->property} => {$this->rawValue}";
@@ -42,6 +49,14 @@ class PHPSSProperty implements PHPSSRender {
 
   public function renderEdit() {
     return;
+  }
+
+  public function renderArray() {
+    $me = new stdClass;
+    $me->property = $this->property;
+    $me->rawValue = $this->rawValue;
+    $me->isImportant = $this->isImportant;
+    return $me;
   }
 
 }
