@@ -18,12 +18,14 @@ final class PHPSSRule implements PHPSSRender {
                "</strong><br />";
     }
     $rule = rtrim($rule,',');
-    $rule .= "<ul>";
+    $rules = "";
+    $styles = "";
     foreach ($this->properties as $property) {
       $rendered_property = $property->render();
-      $rule .= "<li>{$rendered_property}</li>";
+      $rules .= "<li>{$rendered_property}</li>";
+      $styles .= $property->renderCSS(true);
     }
-    return $rule . "</ul>";
+    return "<div style='position:relative'><span style='{$styles}'>{$rule}</span><ul>{$rules}</ul><div>";
   }
 
   public function addSelector($selector) {

@@ -122,9 +122,7 @@ final class PHPSSParser {
     $classes = self::$propertyClasses;
     if (isset($classes[$property]) && class_exists($classes[$property])) {
       $object = new $classes[$property];
-      if (is_subclass_of($object, "PHPSSProperty")) {
-        return $object;
-      }
+      return $object;
     }
     return new PHPSSProperty;
   }

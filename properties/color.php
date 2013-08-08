@@ -19,8 +19,9 @@ class ColorProperty extends PHPSSProperty {
       if ($this->isImportant) {
         $rendered = "Important ". $rendered;
       }
+      return $rendered;
     }
-    return parent::render();
+    return "Unknown Color " . parent::render();
   }
 
   public function getColor() {

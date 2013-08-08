@@ -13,3 +13,6 @@ applyClass('ColorProperty', 'color', array(
   'color',
   'border-color',
   'background-color'));
+applyClass('FontProperty', 'font', array(
+  'font',
+  'font-family'));
