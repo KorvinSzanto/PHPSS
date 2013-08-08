@@ -10,9 +10,20 @@ function applyClass($class, $property_name, $properties) {
 }
 
 applyClass('ColorProperty', 'color', array(
-  'color',
+  'color'));
+applyClass('SelfProperty', 'self', array(
+  'font',
+  'font-family',
+  'font-size',
+  'font-weight',
+  'font-style',
+  'text-decoration',
+  'text-transform',
+  'outline',
+  'border',
+  'border-top',
+  'border-bottom',
+  'border-left',
+  'border-right',
   'border-color',
   'background-color'));
-applyClass('FontProperty', 'font', array(
-  'font',
-  'font-family'));

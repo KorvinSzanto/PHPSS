@@ -1,6 +1,6 @@
 <?php
 
-class FontProperty extends PHPSSProperty {
+class SelfProperty extends PHPSSProperty {
 
   public function render() {
     $sanitized_raw_value = str_replace("'","\'", $this->rawValue);

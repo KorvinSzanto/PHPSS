@@ -4,17 +4,16 @@
  */
 
 final class PHPSSKeyframe implements PHPSSRender {
-
-  protected $fromRule;
-  protected $toRule;
+  protected $rules = array();
   protected $identifier;
   protected $calledProperty;
 
   public function loadData(stdClass $obj) {
     $this->setIdentifier($obj->identifier);
     $this->setCalledProperty($obj->calledProperty);
-    $this->setToRule(with(new PHPSSRule)->loadData($obj->toRule));
-    $this->setFromRule(with(new PHPSSRule)->loadData($obj->fromRule));
+    foreach ($obj->rules as $raw_rule) {
+      $this->addRule(with(new PHPSSRule)->loadData($raw_rule));
+    }
 
     return $this;
   }
@@ -22,33 +21,36 @@ final class PHPSSKeyframe implements PHPSSRender {
   public function render() {
     $rendered = "Keyframe: {$this->identifier} called with " .
     "{$this->calledProperty}<br>";
-    $rendered .= $this->toRule->render();
-    $rendered .= $this->fromRule->render();
+    foreach ($this->rules as $rule) {
+      $rendered .= $rule->render();
+    }
     return $rendered;
   }
 
   public function renderCSS($min = false) {
-    $value = $this->rawValue;
+    $rendered = "";
     if ($min) {
-      return "@{$this->calledProperty} {$this->identifier}{" .
-             $this->fromRule->renderCSS($min) .
-             $this->toRule->renderCSS($min) .
-             "}";
+      $rendered .= "@{$this->calledProperty} {$this->identifier}{";
+
+      foreach ($this->rules as $rule) {
+        $rendered .= $rule->renderCSS($min);
+      }
+
+      $rendered .= "}";
     } else {
-      return "@{$this->calledProperty} {$this->identifier} {\n" .
-             $this->fromRule->renderCSS($min) .
-             $this->toRule->renderCSS($min) .
-             "\n}";
+      $rendered .= "@{$this->calledProperty} {$this->identifier} {\n";
+
+      foreach ($this->rules as $rule) {
+        $rendered .= $rule->renderCSS($min);
+      }
+
+      $rendered .= "\n}";
     }
+    return $rendered;
   }
 
-  public function setFromRule(PHPSSRule $rule) {
-    $this->fromRule = $rule;
-    return $this;
-  }
-  public function setToRule(PHPSSRule $rule) {
-    $this->toRule = $rule;
-    return $this;
+  public function addRule(PHPSSRule $rule) {
+    $this->rules[] = $rule;
   }
 
   public function setIdentifier($identifier) {
@@ -66,10 +68,12 @@ final class PHPSSKeyframe implements PHPSSRender {
 
   public function renderArray() {
     $me = new stdClass;
-    $me->fromRule = $this->fromRule->renderArray();
-    $me->toRule = $this->toRule->renderArray();
     $me->identifier = $this->identifier;
     $me->calledProperty = $this->calledProperty;
+    $me->rules = array();
+    foreach ($this->rules as $rule) {
+      $me->rules[] = $rule->renderArray();
+    }
     return $me;
   }
 

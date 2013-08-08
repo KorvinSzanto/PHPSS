@@ -14,7 +14,7 @@ final class PHPSSRule implements PHPSSRender {
     }
 
     foreach ($obj->properties as $raw_property) {
-      $property = new PHPSSProperty;
+      $property = PHPSSParser::getPropertyObject($raw_property->property);
       $property->loadData($raw_property);
       $this->addProperty($property);
     }

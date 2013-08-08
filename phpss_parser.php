@@ -48,8 +48,8 @@ final class PHPSSParser {
         'rules' => $raw_keyframes['rules'][$key] . "}");
     }
 
-    $sheets['main'] = preg_replace('~^@((-.+?-)keyframes|media)?.+?\{' .
-                                   '((.|\n)+?)\}\n\}~m',
+    $sheets['main'] = preg_replace('~^@((-.+?-)?keyframes|media).+?\{' .
+                                   '(.|\n)+?\}\n\}~m',
                                    "",
                                    $css);
 
@@ -104,7 +104,6 @@ final class PHPSSParser {
     $sheets = $this->getSheets($clean_css);
 
     if (!$this->isValid($sheets['main'])) {
-      echo $sheets['main'];
       throw new InvalidCSSException;
     }
 
@@ -121,23 +120,20 @@ final class PHPSSParser {
     foreach ($sheets['keyframes'] as $raw_keyframe) {
       $keyframe = new PHPSSKeyframe;
 
-      $from_match = array();
-      preg_match('~^from {((?:.|\n)+?)}~m',
-                 $raw_keyframe['rules'],
-                 $from_match);
-      $from_rule = $this->createRule('from', $from_match[1]);
+      $raw_rules = array();
+      $total_rules = preg_match_all(
+        "~^(?P<selector>.+) \{(?P<properties>(\n|.)+?)\n\}~m",
+        $raw_keyframe['rules'],
+        $raw_rules);
 
-      $to_match = array();
-      preg_match('~^to {((?:.|\n)+?)}~m',
-                 $raw_keyframe['rules'],
-                 $to_match);
-      $to_rule = $this->createRule('to', $to_match[1]);
+      foreach($raw_rules['selector'] as $key => $selector) {
+        $rule = $this->createRule($selector,$raw_rules['properties'][$key]);
+        $keyframe->addRule($rule);
+      }
 
 
       $keyframe->setIdentifier($raw_keyframe['identifier'])
-               ->setCalledProperty($raw_keyframe['called'])
-               ->setToRule($to_rule)
-               ->setFromRule($from_rule);
+               ->setCalledProperty($raw_keyframe['called']);
 
       $ast->addKeyframe($keyframe);
     }
@@ -185,7 +181,7 @@ final class PHPSSParser {
       $raw_properties);
 
     foreach($raw_properties['property'] as $key => $property) {
-      $property_object = $this->getPropertyObject(strtolower($property));
+      $property_object = self::getPropertyObject(strtolower($property));
       $property_object->setProperty($property)
                       ->setRawValue($raw_properties['value'][$key]);
       $rule->addProperty($property_object);
@@ -194,14 +190,18 @@ final class PHPSSParser {
   }
 
   private function isValid($css) {
-    $only_brackets = preg_replace('~[^\{\}]~', '', $css);
+    $only_brackets = preg_replace(array(
+      '~[^\\\\]?("|\')[^$1]+?[^\\\\]$1~',
+      '~[^\{\}]~'),
+      '',
+      $css);
     if (strlen(str_replace('{}', '', $only_brackets))) {
       return false;
     }
     return true;
   }
 
-  private function getPropertyObject($property) {
+  public static function getPropertyObject($property) {
     $classes = self::$propertyClasses;
     if (isset($classes[$property]) && class_exists($classes[$property])) {
       $object = new $classes[$property];
