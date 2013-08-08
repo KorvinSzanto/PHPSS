@@ -10,7 +10,13 @@ function applyClass($class, $property_name, $properties) {
 }
 
 applyClass('ColorProperty', 'color', array(
-  'color'));
+  'color',
+  'border-right-color',
+  'border-left-color',
+  'border-top-color',
+  'border-bottom-color',
+  'border-color',
+  'fill'));
 applyClass('SelfProperty', 'self', array(
   'font',
   'font-family',
@@ -26,4 +32,6 @@ applyClass('SelfProperty', 'self', array(
   'border-left',
   'border-right',
   'border-color',
-  'background-color'));
+  'background-color',
+  'background-image',
+  'box-shadow'));
