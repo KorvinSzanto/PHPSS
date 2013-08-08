@@ -80,7 +80,7 @@
           <div class="uk-form-row">
             <label class="uk-form-label" for="file">CSS File</label>
             <input type="file" name="file">
-            <button name='f' class='uk-button uk-button-primary'>Submit</button>
+            <input type='submit' name='f' value='submit' class='uk-button uk-button-primary'>Submit</button>
           </div>
         </form>
       </div>
