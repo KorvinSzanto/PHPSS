@@ -43,7 +43,7 @@ final class PHPSSParser {
     $sheets['keyframes'] = array();
     foreach($raw_keyframes['called'] as $key => $called) {
       $sheets['keyframes'][] = array(
-        'called' => $media,
+        'called' => $called,
         'identifier' => $raw_keyframes['identifier'][$key],
         'rules' => $raw_keyframes['rules'][$key] . "}");
     }
@@ -67,8 +67,9 @@ final class PHPSSParser {
         '~\s*$~m',
         '~\n+~m',
         '~\};~',
+        '~,\n~',
         '~\s*\{~'),
-      array('',"$1\n",";\n}",'','',"\n",'}',' {'),
+      array('',"$1\n",";\n}",'','',"\n",'}',',',' {'),
       $this->rawCSS);
     $this->rawCSS = '';
 

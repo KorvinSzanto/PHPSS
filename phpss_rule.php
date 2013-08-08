@@ -32,14 +32,13 @@ final class PHPSSRule implements PHPSSRender {
 
   public function render() {
     $rule = "";
-    $selector_count = count($this->selectors);
+    $selector_count = $this->numberOfSelectors();
     for($i = 0; $i < $selector_count; $i++) {
 
       $selector = htmlspecialchars($this->selectors[$i]);
       $rule .= "<strong>{$selector}" . ($i + 1 != $selector_count ? "," : "") .
                "</strong><br />";
     }
-    $rule = rtrim($rule,',');
     $rules = "";
     $styles = "";
     foreach ($this->properties as $property) {
