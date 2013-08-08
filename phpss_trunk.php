@@ -79,6 +79,12 @@ final class PHPSSTrunk implements PHPSSRender {
     foreach ($this->rules as $rule) {
       $property_count += $rule->numberOfProperties();
     }
+    foreach ($this->media as $media) {
+      $property_count += $media->numberOfProperties();
+    }
+    foreach ($this->keyframes as $keyframe) {
+      $property_count += $keyframe->numberOfProperties();
+    }
     return $property_count;
   }
 

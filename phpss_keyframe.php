@@ -18,6 +18,13 @@ final class PHPSSKeyframe implements PHPSSRender {
     return $this;
   }
 
+  public function numberOfSelectors() {
+    $selector_count = 0;
+    foreach ($this->rules as $rule) {
+      $selector_count += $rule->numberOfSelectors();
+    }
+  }
+
   public function numberOfRules() {
     return count($this->rules);
   }
