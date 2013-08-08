@@ -18,6 +18,19 @@ final class PHPSSKeyframe implements PHPSSRender {
     return $this;
   }
 
+  public function numberOfRules() {
+    return count($this->rules);
+  }
+
+  public function numberOfProperties() {
+    $property_count = 0;
+    foreach ($this->rules as $rule) {
+      $property_count += $rule->numberOfProperties();
+    }
+    return $property_count;
+  }
+
+
   public function render() {
     $rendered = "Keyframe: {$this->identifier} called with " .
     "{$this->calledProperty}<br>";

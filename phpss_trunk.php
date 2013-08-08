@@ -6,11 +6,11 @@
 final class PHPSSTrunk implements PHPSSRender {
 
   protected $rules     = array();
-  protected $subTrunks = array();
+  protected $media     = array();
   protected $keyframes = array();
   protected $imports   = array();
   protected $charset   = "Unknown";
-  protected $media     = false;
+  protected $mediaType = false;
 
   public function loadData(stdClass $obj) {
     foreach ($obj->imports as $raw_import) {
@@ -18,7 +18,7 @@ final class PHPSSTrunk implements PHPSSRender {
     }
 
     $this->setCharset($obj->charset);
-    $this->setMedia($obj->media);
+    $this->setMediaType($obj->mediaType);
 
     foreach ((array)$obj->rules as $raw_rule) {
       $rule = new PHPSSRule;
@@ -32,13 +32,54 @@ final class PHPSSTrunk implements PHPSSRender {
       $this->addKeyframe($keyframe);
     }
 
-    foreach ((array)$obj->subTrunks as $raw_subTrunk) {
-      $sub_trunk = new PHPSSTrunk;
-      $sub_trunk->loadData($raw_subTrunk);
-      $this->addSubtrunk($sub_trunk);
+    foreach ((array)$obj->media as $raw_media) {
+      $media = new PHPSSTrunk;
+      $media->loadData($raw_media);
+      $this->addMedia($media);
     }
 
     return $this;
+  }
+
+  public function numberOfSelectors() {
+    $selector_count = 0;
+    foreach ($this->rules as $rule) {
+      $selector_count += $rule->numberOfSelectors();
+    }
+    foreach ($this->media as $media) {
+      $selector_count += $media->numberOfSelectors();
+    }
+    foreach ($this->keyframes as $keyframe) {
+      $selector_count += $keyframe->numberOfSelectors();
+    }
+    return $selector_count;
+  }
+
+  public function numberOfRules() {
+    $rule_count = count($this->rules);
+    foreach ($this->media as $media) {
+      $rule_count += $media->numberOfRules();
+    }
+    foreach ($this->keyframes as $keyframe) {
+      $rule_count += $keyframe->numberOfRules();
+    }
+    return $rule_count;
+  }
+
+  public function numberOfKeyframes() {
+    return count($this->keyframes);
+  }
+
+  public function numberOfMedia() {
+    return count($this->media);
+  }
+
+  public function numberOfProperties() {
+    $property_count = 0;
+    foreach ($this->rules as $rule) {
+      $property_count += $rule->numberOfProperties();
+    }
+    return $property_count;
   }
 
   public function addRule(PHPSSRule $rule) {
@@ -51,13 +92,13 @@ final class PHPSSTrunk implements PHPSSRender {
     return $this;
   }
 
-  public function addSubtrunk(PHPSSTrunk $tree) {
-    $this->subTrunks[] = $tree;
+  public function addMedia(PHPSSTrunk $media) {
+    $this->media[] = $media;
     return $this;
   }
 
-  public function setMedia($media) {
-    $this->media = $media;
+  public function setMediaType($media_type) {
+    $this->mediaType = $media_type;
     return $this;
   }
 
@@ -73,8 +114,22 @@ final class PHPSSTrunk implements PHPSSRender {
 
   public function render() {
     $rendered = "";
-    if ($this->media !== false) {
-      $rendered .= "Media: {$this->media}<br>";
+    if ($this->mediaType === false) {
+      $rendered .= "<div class='uk-panel uk-text-center uk-panel-box " .
+                   "uk-text-info'>Within this CSS file, there are " .
+                     number_format($this->numberOfProperties()) .
+                     " properties in " .
+                     number_format($this->numberOfRules()) .
+                     " rules selected by " .
+                     number_format($this->numberOfSelectors()) .
+                     " selectors. There area also " .
+                     number_format($this->numberOfKeyframes()) .
+                     " Keyframes, and " .
+                     number_format($this->numberOfMedia()) .
+                     " Media Templates." .
+                   "</div>";
+    } else {
+      $rendered .= "Media: {$this->mediaType}<br>";
     }
     if ($this->charset) {
       $rendered .= "Character Encoding: {$this->charset}<br />";
@@ -85,24 +140,24 @@ final class PHPSSTrunk implements PHPSSRender {
     foreach ($this->rules as $rule) {
       $rendered .= $rule->render();
     }
-    foreach ($this->subTrunks as $subTrunk) {
-      $rendered .= $subTrunk->render();
+    foreach ($this->media as $media) {
+      $rendered .= $media->render();
     }
     return $rendered;
   }
 
   public function renderCSS($min=false) {
     if ($min) {
-      $rendered = "@media {$this->media} {";
+
       foreach ($this->rules as $rule) {
         $rendered .= $rule->renderCSS($min);
       }
-      foreach ($this->subTrunks as $subTrunk) {
-        $rendered .= $subTrunk->renderCSS($min);
+      foreach ($this->media as $media) {
+        $rendered .= $media->renderCSS($min);
       }
 
-      if ($this->media !== false) {
-        $rendered = "@media {$this->media}\{{$rendered}\}";
+      if ($this->mediaType !== false) {
+        $rendered = "@media {$this->mediaType}\{{$rendered}\}";
       }
 
     } else {
@@ -114,8 +169,8 @@ final class PHPSSTrunk implements PHPSSRender {
         $rendered .= $subTrunk->renderCSS($min);
       }
 
-      if ($this->media !== false) {
-        $rendered = "@media {$this->media} \{\n{$rendered}\n\}";
+      if ($this->mediaType !== false) {
+        $rendered = "@media {$this->mediaType} \{\n{$rendered}\n\}";
       }
 
     }
@@ -129,11 +184,11 @@ final class PHPSSTrunk implements PHPSSRender {
   public function renderArray() {
     $me = new stdClass;
     $me->rules = array();
-    $me->subTrunks = array();
-    $me->keyframes = array();
-    $me->imports = $this->imports;
-    $me->charset = $this->charset;
-    $me->media   = $this->media;
+    $me->media  = array();
+    $me->keyframes  = array();
+    $me->imports    = $this->imports;
+    $me->charset    = $this->charset;
+    $me->mediaType = $this->mediaType;
 
     foreach ($this->keyframes as $keyframe) {
       $me->keyframes[] = $keyframe->renderArray();
@@ -143,8 +198,8 @@ final class PHPSSTrunk implements PHPSSRender {
       $me->rules[] = $rule->renderArray();
     }
 
-    foreach ($this->subTrunks as $subTrunk) {
-      $me->subTrunks[] = $subTrunk->renderArray();
+    foreach ($this->media as $media) {
+      $me->media[] = $media->renderArray();
     }
 
     return $me;

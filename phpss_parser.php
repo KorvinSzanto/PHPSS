@@ -114,8 +114,8 @@ final class PHPSSParser {
         throw new InvalidCSSException;
       }
       $subast = $this->createTree($sheet['rules']);
-      $subast->setMedia($sheet['media']);
-      $ast->addSubtrunk($subast);
+      $subast->setMediaType($sheet['media']);
+      $ast->addMedia($subast);
     }
     foreach ($sheets['keyframes'] as $raw_keyframe) {
       $keyframe = new PHPSSKeyframe;

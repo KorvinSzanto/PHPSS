@@ -22,6 +22,14 @@ final class PHPSSRule implements PHPSSRender {
     return $this;
   }
 
+  public function numberOfSelectors() {
+    return count($this->selectors);
+  }
+
+  public function numberOfProperties() {
+    return count($this->properties);
+  }
+
   public function render() {
     $rule = "";
     $selector_count = count($this->selectors);
