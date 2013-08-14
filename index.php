@@ -1,3 +1,13 @@
+<?php
+if (isset($_POST['f'])) {
+  $file = genToken();
+  if ($response = pullCached($file)) {
+    header('location: ?f=' . $file);
+    exit;
+  }
+}
+?>
+<!doctype html>
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="uikit.css">
@@ -5,13 +15,7 @@
   <body>
     <div class='uk-container-center uk-container'>
         <?php
-        if (isset($_POST['f'])) {
-          $file = genToken();
-          if ($response = pullCached($file)) {
-            header('location: ?f=' . $file);
-            exit;
-          }
-        } else if (isset($_GET['f']) && $_GET['f']) {
+        if (isset($_GET['f']) && $_GET['f']) {
           $file = preg_replace('~[^a-z0-9]~i','',$_GET['f']);
           if ($response = pullCached($file)) {
             die("<div class='uk-width-large-1-1 uk-visible-large uk-panel-box'>" .
