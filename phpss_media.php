@@ -3,14 +3,13 @@
  * Property
  */
 
-final class PHPSSKeyframe implements PHPSSRender {
+final class PHPSSMedia implements PHPSSRender {
   protected $rules = array();
-  protected $identifier;
-  protected $calledProperty;
+  protected $type;
 
   public function loadData(stdClass $obj) {
-    $this->setIdentifier($obj->identifier);
-    $this->setCalledProperty($obj->calledProperty);
+    $this->setMediaType($obj->type);
+
     foreach ($obj->rules as $raw_rule) {
       $this->addRule(with(new PHPSSRule)->loadData($raw_rule));
     }
@@ -40,9 +39,8 @@ final class PHPSSKeyframe implements PHPSSRender {
 
 
   public function render() {
-    $identifier = htmlspecialchars($this->identifier);
-    $called = htmlspecialchars($this->calledProperty);
-    $rendered = "Keyframe: {$identifier} called with {$called}" . render_tag('br');
+    $type = htmlspecialchars($this->type);
+    $rendered = "Media Type: {$type}" . render_tag('br');
     foreach ($this->rules as $rule) {
       $rendered .= $rule->render();
     }
@@ -52,7 +50,7 @@ final class PHPSSKeyframe implements PHPSSRender {
   public function renderCSS($min = false) {
     $rendered = "";
     if ($min) {
-      $rendered .= "@{$this->calledProperty} {$this->identifier}{";
+      $rendered = "@media {$this->mediaType}\{";
 
       foreach ($this->rules as $rule) {
         $rendered .= $rule->renderCSS($min);
@@ -60,7 +58,8 @@ final class PHPSSKeyframe implements PHPSSRender {
 
       $rendered .= "}";
     } else {
-      $rendered .= "@{$this->calledProperty} {$this->identifier} {\n";
+      $rendered = "@media {$this->mediaType} \{\n";
+
 
       foreach ($this->rules as $rule) {
         $rendered .= $rule->renderCSS($min);
@@ -75,12 +74,8 @@ final class PHPSSKeyframe implements PHPSSRender {
     $this->rules[] = $rule;
   }
 
-  public function setIdentifier($identifier) {
-    $this->identifier = $identifier;
-    return $this;
-  }
-  public function setCalledProperty($called) {
-    $this->calledProperty = $called;
+  public function setMediaType($type) {
+    $this->type = $type;
     return $this;
   }
 
@@ -90,8 +85,7 @@ final class PHPSSKeyframe implements PHPSSRender {
 
   public function renderArray() {
     $me = new stdClass;
-    $me->identifier = $this->identifier;
-    $me->calledProperty = $this->calledProperty;
+    $me->type = $this->type;
     $me->rules = array();
     foreach ($this->rules as $rule) {
       $me->rules[] = $rule->renderArray();

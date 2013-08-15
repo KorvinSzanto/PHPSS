@@ -33,7 +33,7 @@ final class PHPSSTrunk implements PHPSSRender {
     }
 
     foreach ((array)$obj->media as $raw_media) {
-      $media = new PHPSSTrunk;
+      $media = new PHPSSMedia;
       $media->loadData($raw_media);
       $this->addMedia($media);
     }
@@ -98,7 +98,7 @@ final class PHPSSTrunk implements PHPSSRender {
     return $this;
   }
 
-  public function addMedia(PHPSSTrunk $media) {
+  public function addMedia(PHPSSMedia $media) {
     $this->media[] = $media;
     return $this;
   }
@@ -120,27 +120,30 @@ final class PHPSSTrunk implements PHPSSRender {
 
   public function render() {
     $rendered = "";
+    $br = render_tag('br');
     if ($this->mediaType === false) {
-      $rendered .= "<div class='uk-panel uk-text-center uk-panel-box " .
-                   "uk-text-info'>Within this CSS file, there are " .
-                     number_format($this->numberOfProperties()) .
-                     " properties in " .
-                     number_format($this->numberOfRules()) .
-                     " rules selected by " .
-                     number_format($this->numberOfSelectors()) .
-                     " selectors. There area also " .
-                     number_format($this->numberOfKeyframes()) .
-                     " Keyframes, and " .
-                     number_format($this->numberOfMedia()) .
-                     " Media Templates." .
-                   "</div>";
+      $rendered .= render_tag(
+        'div',
+        array('class' => 'uk-panel uk-text-center uk-panel-box ' .
+                   '      uk-text-info'),
+        "Within this CSS file, there are " .
+        number_format($this->numberOfProperties()) .
+        " properties in " .
+        number_format($this->numberOfRules()) .
+        " rules selected by " .
+        number_format($this->numberOfSelectors()) .
+        " selectors. There area also " .
+        number_format($this->numberOfKeyframes()) .
+        " Keyframes, and " .
+        number_format($this->numberOfMedia()) .
+        " Media Templates.");
     } else {
       $media_type = htmlspecialchars($this->mediaType);
-      $rendered .= "Media: {$media_type}<br>";
+      $rendered .= "Media: {$media_type}{$br}";
     }
     if ($this->charset) {
       $charset = htmlspecialchars($this->charset);
-      $rendered .= "Character Encoding: {$charset}<br />";
+      $rendered .= "Character Encoding: {$charset}{$br}";
     }
     foreach ($this->keyframes as $keyframe) {
       $rendered .= $keyframe->render();

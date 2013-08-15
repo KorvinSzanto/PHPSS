@@ -35,22 +35,26 @@ final class PHPSSRule implements PHPSSRender {
     $selector_count = $this->numberOfSelectors();
     for($i = 0; $i < $selector_count; $i++) {
 
-      $selector = htmlspecialchars($this->selectors[$i]);
-      $rule .= "<strong>{$selector}" . ($i + 1 != $selector_count ? "," : "") .
-               "</strong><br />";
+      $selector = htmlspecialchars($this->selectors[$i]) .
+                  ($i + 1 != $selector_count ? "," : "");
+      $rule .= render_tag(
+        'div',
+        array(),
+        render_tag('strong', array(), $selector));
     }
     $rules = "";
     $styles = "";
     foreach ($this->properties as $property) {
       $rendered_property = $property->render();
-      $rules .= "<li>{$rendered_property}</li>";
+      $rules .= render_tag('li', array(), $rendered_property);
       $styles .= $property->renderCSS(true);
     }
     $styles = str_replace(array('"','fixed'), array("'",'absolute'), $styles);
-    return "<div style='overflow:hidden;position:relative'>" .
-             "<span style=\"{$styles}\">{$rule}</span>" .
-             "<ul style='clear:both'>{$rules}</ul>" .
-           "</div>";
+    return render_tag(
+      'div',
+      array('style'=>'overflow:hidden;position:relative'),
+      render_tag('span', array('style'=>$styles), $rule) .
+      render_tag('ul', array('style'=>'clear:both'), $rules));
   }
 
   public function addSelector($selector) {

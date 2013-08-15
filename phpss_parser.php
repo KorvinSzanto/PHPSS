@@ -105,16 +105,16 @@ final class PHPSSParser {
     $sheets = $this->getSheets($clean_css);
 
     if (!$this->isValid($sheets['main'])) {
-      throw new InvalidCSSException;
+      throw new PHPSSInvalidCSSException;
     }
 
     $ast = $this->createTree($sheets['main']);
 
     foreach ($sheets['subsheets'] as $sheet) {
       if (!$this->isValid($sheet['rules'])) {
-        throw new InvalidCSSException;
+        throw new PHPSSInvalidCSSException;
       }
-      $subast = $this->createTree($sheet['rules']);
+      $subast = $this->createTree($sheet['rules'], 'PHPSSMedia');
       $subast->setMediaType($sheet['media']);
       $ast->addMedia($subast);
     }
@@ -152,8 +152,8 @@ final class PHPSSParser {
     return $ast;
   }
 
-  private function createTree($css) {
-    $ast = new PHPSSTrunk;
+  private function createTree($css, $class='PHPSSTrunk') {
+    $ast = new $class;
     $raw_rules = array();
     $total_rules = preg_match_all(
       "~^(?P<selector>.+) \{(?P<properties>(\n|.)+?)\n\}~m",
@@ -213,4 +213,4 @@ final class PHPSSParser {
 
 
 }
-class InvalidCSSException extends exception{}
+class PHPSSInvalidCSSException extends exception{}
